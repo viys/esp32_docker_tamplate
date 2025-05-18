@@ -1,0 +1,52 @@
+name: Build and Release ESP32 Firmware (Docker)
+
+on:
+  push:
+    branches: [workflows]
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取源码
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 启动构建容器
+      - name: Build firmware using docker-compose
+        run: |
+          docker compose run --rm esp-idf bash -c "idf.py set-target esp32c3 && idf.py build"
+
+      # 3. 上传构建产物
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: esp32-firmware
+          path: |
+            build/*.bin
+            build/*.elf
+            build/*.map
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      # 4. 下载构建产物
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: esp32-firmware
+
+      # 5. 发布 GitHub Release（需要 tag 或手动）
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            *.bin
+            *.elf
+            *.map
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
