@@ -12,7 +12,7 @@ jobs:
     steps:
       # 1. 拉取源码
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # 2. 启动构建容器
       - name: Build firmware using docker-compose
@@ -21,7 +21,7 @@ jobs:
 
       # 3. 上传构建产物
       - name: Upload firmware artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: esp32-firmware
           path: |
