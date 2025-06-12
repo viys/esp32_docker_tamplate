@@ -156,6 +156,29 @@ mv build/*.bin build/esp32s3-${VERSION}.bin
 
 - 与 PowerShell 脚本类似，`esp-idf-menu.sh` 脚本会提示您输入必要的参数，并帮助您完成 ESP32 项目的管理。
 
+## 构建系统
+
+### 为项目添加 Kconfig
+
+在项目文件夹下创建`Kconfig.projbuild`文件。
+
+```text
+orsource "$IDF_PATH/examples/common_components/env_caps/$IDF_TARGET/Kconfig.env_caps"
+
+menu "Example Configuration"
+	# 你的配置项
+endmenu
+```
+
+### SDKCONFIG 环境变量
+
+可以通过设置 `SDKCONFIG` 环境变量来指定使用哪个 `sdkconfig` 文件：
+
+```shell
+# 使用 sdkconfig.debug 文件构建
+SDKCONFIG=sdkconfig.debug idf.py build
+```
+
 ## 总结
 
 通过使用 Docker 和提供的脚本，您可以轻松地在隔离的环境中进行 ESP32 项目的开发。无论是在 Windows 还是 Linux/macOS 系统上，您都可以根据自己的需求运行相应的脚本来管理项目的生命周期。
