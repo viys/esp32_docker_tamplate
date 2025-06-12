@@ -4,5 +4,10 @@ esptool-win64/
 esptool-macos/
 esptool-linux-amd64/
 
+/docs/*
+!/docs/
+!/docs/logo.ico
+!/docs/logo.png
+
 # 等到模板完成时屏蔽忽略 sdkconfig
 # sdkconfig
