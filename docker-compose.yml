@@ -5,10 +5,10 @@ services:
     image: espressif/idf:v5.4.1
     container_name: esp-idf-builder
     volumes:
-      - .:/project
-    working_dir: /project
+      - .:/workspace
+    working_dir: /workspace
     environment:
       - HOME=/tmp
-      - IDF_GIT_SAFE_DIR=/project
+      - IDF_GIT_SAFE_DIR=/workspace
     tty: true
     stdin_open: true
