@@ -39,9 +39,36 @@ function Check-Graphviz {
     }
 }
 
+function Convert-MarkdownCode($markdownPath) {
+    $content = Get-Content $markdownPath -Raw
+
+    # 使用正则提取所有代码块，并处理它们
+    $pattern = '(?ms)(^[ \t]*)(```[^\n]*\r?\n)(.*?)(^\1```)'  # 提取缩进、起始符、代码、结束符
+
+    $converted = [regex]::Replace($content, $pattern, {
+        param($m)
+
+        $indent  = $m.Groups[1].Value  # 统一缩进
+        $codeRaw = $m.Groups[3].Value  # 原始代码内容（含缩进）
+
+        # 对每行代码移除统一缩进
+        $codeLines = $codeRaw.Split("`n")
+        $cleanedLines = $codeLines | ForEach-Object {
+            $_ -replace "^$indent", ""
+        }
+
+        # 拼接成新的 @verbatim 块，保留缩进
+        return "$indent@verbatim`n" + ($cleanedLines -join "`n") + "`n@endverbatim"
+    })
+
+    return $converted
+}
+
 # -----------------------
 # 主逻辑根据命令选择
 # -----------------------
+
+$Command = $Command.ToLowerInvariant()
 
 switch ($Command) {
 
@@ -68,13 +95,7 @@ switch ($Command) {
         Write-Host "📁 readme.md backup created."
 
         try {
-            $content = Get-Content $readmePath -Raw
-            $pattern = '(?ms)```[^\n]*\n(.*?)```'
-            $converted = [regex]::Replace($content, $pattern, {
-                param($m)
-                "@verbatim`n" + $m.Groups[1].Value.TrimEnd() + "`n@endverbatim"
-            })
-
+            $converted = Convert-MarkdownCode($readmePath);
             Set-Content -Path $readmePath -Value $converted -Encoding UTF8
             Write-Host "🔧 Code blocks converted to @verbatim."
 
