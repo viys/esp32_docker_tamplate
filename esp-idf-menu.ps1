@@ -1,3 +1,21 @@
+function Check-Docker {
+    try {
+        # 检查 Docker 服务是否正在运行
+        $dockerStatus = docker info --format '{{.ServerVersion}}'
+        if ($dockerStatus) {
+            Write-Host "Docker 服务正在运行，版本: $dockerStatus" -ForegroundColor Green
+            return $true
+        }
+        else {
+            Write-Host "Docker 服务未启动。" -ForegroundColor Red
+            return $false
+        }
+    } catch {
+        Write-Host "Docker 未安装或未启动，请启动 Docker。" -ForegroundColor Red
+        return $false
+    }
+}
+
 function Show-Header {
     Write-Host "===============================" -ForegroundColor Cyan
     Write-Host "         ESP-IDF 开发工具         " -ForegroundColor Cyan
@@ -129,7 +147,6 @@ function Run-Command {
             }
         }
         7 {
-
             docker-compose run --rm esp-idf idf.py --port "rfc2217://host.docker.internal:4000?ign_set_control" flash
             exit
         }
@@ -149,6 +166,11 @@ function Run-Command {
             Write-Host "无效选择，请重试。" -ForegroundColor Red
         }
     }
+}
+
+# 在脚本开始时检查 Docker 是否启动
+if (-Not (Check-Docker)) {
+    exit
 }
 
 while ($true) {

@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# 检查 Docker 是否启动
+check_docker() {
+    # 尝试获取 Docker 信息，检查 Docker 是否正在运行
+    if ! docker info > /dev/null 2>&1; then
+        echo -e "\033[31mDocker 服务未启动或未安装，请启动 Docker。\033[0m"
+        exit 1
+    else
+        echo -e "\033[32mDocker 服务正在运行。\033[0m"
+    fi
+}
+
 # 显示标题
 show_header() {
     echo -e "\033[36m===============================\033[0m"
@@ -117,6 +128,9 @@ run_command() {
             ;;
     esac
 }
+
+# 在脚本开始时检查 Docker 是否启动
+check_docker
 
 # 主循环
 while true; do
