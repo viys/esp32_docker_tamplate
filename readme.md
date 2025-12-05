@@ -97,6 +97,43 @@ docker pull espressif/idf:v5.4.1
 
 3. 脚本会显示一个菜单，您可以选择执行相应的操作。
 
+## GitHub Actions 自动构建与发布（`.github/workflows/esp32.yml`）
+
+此工作流会在您推送 tag（如 `v1.0.0`）到 `release` 分支时自动触发，并完成固件编译与 GitHub Release 发布。
+
+### 自动构建与发布流程
+
+1. **触发条件**：
+   - 推送 tag（格式如 `v1.0.0`）到 `release` 分支
+   - 或使用 GitHub 手动触发按钮
+2. **构建步骤**：
+   - 使用 `docker compose` 启动 `espressif/idf` 容器
+   - 运行 `idf.py set-target <芯片型号>` 设置目标芯片
+   - 编译固件
+   - 将产物重命名为版本化名称，如：`esp32c3-v1.0.0.bin`
+3. **发布步骤**：
+   - 上传构建产物为 Artifact
+   - 使用 [`softprops/action-gh-release`](https://github.com/softprops/action-gh-release) 创建 GitHub Release 并附加产物
+
+### 更换目标芯片
+
+默认构建的是 **ESP32-C3**（`esp32c3`）。如果您使用其他芯片，请在 `.github/workflows/esp32.yml` 中手动修改这两处：
+
+```
+yaml复制编辑# 将 esp32c3 替换为您的目标芯片（如 esp32、esp32s3）
+idf.py set-target esp32c3
+mv build/*.bin build/esp32c3-${VERSION}.bin
+```
+
+例如，如果您的芯片是 ESP32-S3，修改如下：
+
+```
+yaml复制编辑idf.py set-target esp32s3
+mv build/*.bin build/esp32s3-${VERSION}.bin
+```
+
+请确保修改 `.bin`、`.elf`、`.map` 的命名一致。
+
 ### 注意事项
 
 - 与 PowerShell 脚本类似，`esp-idf-menu.sh` 脚本会提示您输入必要的参数，并帮助您完成 ESP32 项目的管理。
