@@ -1,4 +1,4 @@
-function Check-Docker {
+function Test-Docker {
     try {
         # 检查 Docker 服务是否正在运行
         $dockerStatus = docker info --format '{{.ServerVersion}}'
@@ -83,7 +83,7 @@ function Show-Loading {
     }
 }
 
-function Ensure-Esptool {
+function Initialize-Esptool {
     $toolPath = "scripts\esptool-win64"
     if (-Not (Test-Path $toolPath)) {
         Write-Host "未找到 $toolPath，正在运行 install_esptool.py 安装..." -ForegroundColor Yellow
@@ -102,7 +102,7 @@ function Ensure-Esptool {
     return $true
 }
 
-function Run-Command {
+function Invoke-MenuAction {
     param (
         [int]$Choice
     )
@@ -139,7 +139,7 @@ function Run-Command {
         }
         6 {
             $port = Read-Host "请输入目标串口设备名称（如：COM3）"
-            if (Ensure-Esptool) {
+            if (Initialize-Esptool) {
                 Push-Location "scripts\esptool-win64"
                 .\esp_rfc2217_server -v -p 4000 $port
                 Pop-Location
@@ -169,7 +169,7 @@ function Run-Command {
 }
 
 # 在脚本开始时检查 Docker 是否启动
-if (-Not (Check-Docker)) {
+if (-Not (Test-Docker)) {
     exit
 }
 
@@ -178,7 +178,7 @@ while ($true) {
     $selection = Read-Host "请输入数字选择（如 1-8 或 0 退出）"
     if ($selection -match '^\d+$') {
         $selection = [int]$selection
-        Run-Command -Choice $selection
+        Invoke-MenuAction -Choice $selection
     } else {
         Write-Host "无效输入，请输入有效数字（0-9）。" -ForegroundColor Red
     }
