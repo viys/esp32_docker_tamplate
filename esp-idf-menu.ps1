@@ -1,19 +1,47 @@
 function Test-Docker {
-    try {
-        # 检查 Docker 服务是否正在运行
-        $dockerStatus = docker info --format '{{.ServerVersion}}'
-        if ($dockerStatus) {
-            Write-Host "Docker 服务正在运行，版本: $dockerStatus" -ForegroundColor Green
-            return $true
+    param(
+        [switch]$Quiet
+    )
+
+    # 1) docker CLI 是否存在
+    $dockerCmd = Get-Command docker -ErrorAction SilentlyContinue
+    if (-not $dockerCmd) {
+        if (-not $Quiet) {
+            Write-Host "未找到 docker 命令（Docker Desktop/Engine 可能未安装或 PATH 未配置）。" -ForegroundColor Red
         }
-        else {
-            Write-Host "Docker 服务未启动。" -ForegroundColor Red
-            return $false
-        }
-    } catch {
-        Write-Host "Docker 未安装或未启动，请启动 Docker。" -ForegroundColor Red
         return $false
     }
+
+    # 2) 尽量用最轻量且稳定的命令探测 daemon：docker version (Server 部分)
+    #    - 用 2>&1 抓 stderr，避免你看不到关键报错
+    $output = & docker version --format '{{.Server.Version}}' 2>&1
+    $exitCode = $LASTEXITCODE
+
+    if ($exitCode -eq 0 -and -not [string]::IsNullOrWhiteSpace($output)) {
+        if (-not $Quiet) {
+            Write-Host "Docker Engine 可用，Server 版本: $output" -ForegroundColor Green
+        }
+        return $true
+    }
+
+    # 3) 如果失败，把更可读的原因打印出来（常见：daemon没启动、context不对、权限问题）
+    if (-not $Quiet) {
+        # docker context 也一起打印，很多“明明跑着却不通”都是 context 指错了
+        $ctx = (& docker context show 2>$null)
+        if ($ctx) {
+            Write-Host "当前 Docker context: $ctx" -ForegroundColor Yellow
+        }
+
+        $msg = ($output | Out-String).Trim()
+        if ([string]::IsNullOrWhiteSpace($msg)) {
+            $msg = "docker version 失败（exitCode=$exitCode），但未返回可读错误信息。"
+        }
+
+        Write-Host "Docker Engine 不可用：" -ForegroundColor Red
+        Write-Host $msg -ForegroundColor Red
+    }
+
+    return $false
 }
 
 function Show-Header {
