@@ -204,9 +204,9 @@ function Invoke-Help {
 
 try {
 
-    # if ($Action -ne "help" -and -not (Test-Docker)) {
-    #     exit
-    # }
+    if ($Action -ne "help" -and -not (Test-Docker)) {
+        exit
+    }
 
     switch ($Action) {
         "create-project" {
