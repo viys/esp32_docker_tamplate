@@ -71,8 +71,18 @@ function Invoke-CreateProject {
 
     docker-compose run --rm esp-idf idf.py create-project $ProjectName
 
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "create-project 失败（exitCode=$LASTEXITCODE），已中止。" -ForegroundColor Red
+        return
+    }
+
     $projPath   = Join-Path -Path (Get-Location) -ChildPath $ProjectName
     $parentPath = Split-Path -Path $projPath -Parent
+
+    if (-not (Test-Path $projPath)) {
+        Write-Host "项目目录未创建：$projPath" -ForegroundColor Red
+        return
+    }
 
     Get-ChildItem -Path $projPath -Force | ForEach-Object {
         $destination = Join-Path $parentPath $_.Name
@@ -81,6 +91,7 @@ function Invoke-CreateProject {
 
     Remove-Item -Path $projPath -Recurse -Force
 }
+
 
 function Invoke-SetTarget {
     param (
